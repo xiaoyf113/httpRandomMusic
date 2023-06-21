@@ -13,7 +13,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 port = 65533
 
 # 存音乐的目录
-fileDir = '/Users/sparkle/Music/网易云音乐'  
+fileDir = '/volume1/music/MP3'  
 
 # 实时转码需要依赖ffmpeg的路径 如果为空就不转码
 ffmpeg = 'ffmpeg'
@@ -34,36 +34,36 @@ def updateFileList():
     # for i in os.listdir(fileDir):
     #     if i.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a']:
     #         fileList.append(i)
-    fileList = list(filter(lambda x: x.lower().split('.')[-1] in ['flac','mp3','wav','aac','m4a'], os.listdir('.')))
-    fileList.sort(key=lambda x: os.path.getmtime(x))
+    fileList = list(filter(lambda x: x.lower()。split('.')[-1] 在 ['flac'，'mp3'，'wav'，'aac'，'m4a'], os.listdir('.')))
+    fileList.sort(key=lambda x: os.path。getmtime(x))
     fileList.reverse()
     print(str(len(fileList)) + ' files')
 
 
 class meHandler(BaseHTTPRequestHandler):
     def translate_path(self, path):
-        path = path.split('?',1)[0]
-        path = path.split('#',1)[0]
-        trailing_slash = path.rstrip().endswith('/')
+        path = path.split('?'，1)[0]
+        path = path.split('#'，1)[0]
+        trailing_slash = path.rstrip()。endswith('/')
         try:
-            path = urllib.parse.unquote(path, errors='surrogatepass')
+            path = urllib.parse。unquote(path, errors='surrogatepass')
         except UnicodeDecodeError:
-            path = urllib.parse.unquote(path)
+            path = urllib.parse。unquote(path)
         path = posixpath.normpath(path)
         words = path.split('/')
         words = filter(None, words)
         path = fileDir
-        for word in words:
-            if os.path.dirname(word) or word in (os.curdir, os.pardir):
+        for word 在 words:
+            if os.path。dirname(word) 或 word 在 (os.curdir, os.pardir):
                 continue
-            path = os.path.join(path, word)
+            path = os.path。join(path, word)
         if trailing_slash:
             path += '/'
         return path
 
     def return302(self, filename):
         self.send_response(302)
-        self.send_header('Location', '/' + urllib.parse.quote(filename))
+        self.send_header('Location'， '/' + urllib.parse。quote(filename))
         self.end_headers()
 
     def do_GET(self):
@@ -87,12 +87,12 @@ class meHandler(BaseHTTPRequestHandler):
         else:
             path = self.translate_path(self.path)
             print(path)
-            if os.path.isfile(path):
+            if os.path。isfile(path):
                 self.send_response(200)
-                if ffmpeg and path.lower().split('.')[-1] not in ['wav','mp3']:
-                    self.send_header("Content-type", 'audio/wav')
-                    t = subprocess.getoutput('{} -i "{}" 2>&1 | {} Duration'.format(ffmpeg, path, 'findstr' if os.name == 'nt' else 'grep')).split()[1][:-1].split(':')
-                    self.send_header("Content-Length", str((float(t[0]) * 3600 + float(t[1]) * 60 + float(t[2])) * 176400))
+                if ffmpeg 和 path.lower()。split('.')[-1] not 在 ['wav'，'mp3']:
+                    self.send_header("Content-type"， 'audio/wav')
+                    t = subprocess.getoutput('{} -i "{}" 2>&1 | {} Duration'。format(ffmpeg, path, 'findstr' if os.name == 'nt' else 'grep'))。split()[1][:-1]。split(':')
+                    self.send_header("Content-Length"， str((float(t[0]) * 3600 + float(t[1]) * 60 + float(t[2])) * 176400))
                     self.end_headers()
                     pipe = subprocess.Popen([ffmpeg, '-i', path, '-f', 'wav', '-'], stdout=subprocess.PIPE, bufsize=10 ** 8)
                     try:
